@@ -1,0 +1,26 @@
+select y.produkfk,y.saldoawal from (
+           select x.produkfk,x.saldoawal from (
+           select ROW_NUMBER () OVER (
+           PARTITION BY produkfk
+		ORDER BY
+			tglkejadian desc
+	) as no,* 
+from kartustok_t where 
+tglkejadian between '2020-06-30 00:00:00' and	'2021-07-01 00:00:00' and ruanganfk = 59 
+) as x
+where x.no=1
+
+union ALL
+
+select x.produkfk,
+case when status='f' then x.saldoawal+x.jumlah
+else x.saldoawal-x.jumlah end as saldoawal from (
+           select ROW_NUMBER () OVER (
+           PARTITION BY produkfk
+		ORDER BY
+			tglkejadian
+	) as no,* from kartustok_t where
+tglkejadian between '2021-07-01 00:00:00' and	'2021-07-31 00:00:00' and ruanganfk = 59 ) as x
+where x.no=1) as y
+group by y.produkfk,y.saldoawal
+order by y.produkfk
